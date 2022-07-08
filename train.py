@@ -9,7 +9,7 @@ Created on Fri Jul  8 13:00:05 2022
 import os
 import configparser
 
-config = configparser.ConfigParser(allow_no_value = True)
+# config = configparser.ConfigParser(allow_no_value = True)
 
 # config.add_section('generator')
 # config.set('generator', '; architecture: [unet]')
@@ -48,12 +48,14 @@ config = configparser.ConfigParser(allow_no_value = True)
 # config.set('training', 'is_gpu', '1')
 
 
-with open('config_file.ini', 'w') as configfile:
-    config.write(configfile)
+# with open('config_file.ini', 'w') as configfile:
+#     config.write(configfile)
+
     
 
 #%%
-
+config = configparser.ConfigParser(allow_no_value = True)
+config.read('config_file.ini')
 is_gpu = config['training']['is_gpu']
 
 if is_gpu == '0':
@@ -64,12 +66,6 @@ import tensorflow as tf
 import warnings
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from tensorflow.compat.v1.keras.backend import set_session
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-config.log_device_placement = True
-sess = tf.compat.v1.Session(config=config)
-set_session(sess)
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Input, Lambda, LayerNormalization
 from tensorflow.keras.layers import LeakyReLU, Concatenate
@@ -93,9 +89,6 @@ from functions import make_fid, evall_2, plot_curves_gp, validate
 #%%
 
 parser = optparse.OptionParser()
-config = configparser.ConfigParser(allow_no_value = True)
-config.read('config_file.ini')
-
 parser.add_option('--direc', action="store", dest="task", default="IXI/")
 options,args = parser.parse_args()
 
