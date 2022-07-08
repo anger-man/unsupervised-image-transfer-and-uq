@@ -1,15 +1,14 @@
 # unsupervised-depth-estimation-and-uq
 Unsupervised joint image transfer and uncertainty quantification using patch invariant networks
 
-Implementation of a framework for fully unsupervised single depth estimation as proposed in:
-
+Implementation of a light-weight framework for completely unpaired domain mapping and simultaneous uncertainty quantification.
 Preprint version: #####
 
 ## Installation
 
 ```
 #from github
-git clone https://github.com/anger-man/unsupervised-depth-estimation
+git clone https://github.com/anger-man/unsupervised-image-transfer-and-uq
 cd unsupervised-image-transfer-and-uq
 conda env create --name unsupervised-transfer-uq --file=environment_tf22.yml
 conda activate unsupervised-transfer-uq
@@ -39,7 +38,7 @@ Input and target images should be given in .jpg-format with spatial dimension **
 |----image_index2.jpg
 |----depth_index2.npy
 ```
-The directory *IXI* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset ** (https://brain-development.org/ixi-dataset/).
+The directory *IXI* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset** (https://brain-development.org/ixi-dataset/).
 
 
 
