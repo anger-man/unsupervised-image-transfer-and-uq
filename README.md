@@ -21,6 +21,10 @@ Then:
 ```
 python train.py --direc path_to_project_folder
 ```
+For example:
+```
+python train.py --direc 'IXI/'
+```
 ## Data preparation
 
 Input and target images should be given in .jpg-format with spatial dimension **d**x**d**, where the possible values for spatial resolution **d** should be powers of 2 (at least 128). The evaluation folder should contain some paired samples, where an image from the input domain is linked by an unique index with its target counterpart.

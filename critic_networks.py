@@ -237,7 +237,7 @@ def define_patchgan_critic(in_image,f,norm,k = 4,alpha=0.2,out_act='linear'):
     d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=1)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
-    d = Conv2DEQ(filters=1, kernel_size=(k,k), padding='valid',strides=1)(d)
+    d = Conv2DHE(filters=1, kernel_size=(k,k), padding='valid',strides=1)(d)
     patch_out = Activation(out_act)(d)
     model = Model(in_image, patch_out)
    
@@ -288,11 +288,11 @@ def define_dcgan_critic(in_image,f,norm,k = 4,alpha=0.2,out_act='linear'):
     d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
-    d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = Conv2DHE(filters=16*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
-    d = GlobalAvgPool2D()(d)
-    dcgan_out = DenseHE(units=1, activation='linear')(d)
+    d = Conv2DHE(filters=1, kernel_size=(k,k), padding='valid',strides=1)(d)
+    dcgan_out = Activation('linear')(d)
     
     model = Model(in_image, dcgan_out)
    

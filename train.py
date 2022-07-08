@@ -29,7 +29,7 @@ import configparser
 # config.set('critic', '; amount of filters for the first convolutional layer')
 # config.set('critic', 'fc', '32')
 # config.set('critic', '; normalization after convolution: [none,layer,instance]')
-# config.set('critic', 'normc', 'layer')
+# config.set('critic', 'normc', 'none')
 # config.set('critic', '; number of intermediate critic iterations (doubled during the first epoch)')
 # config.set('critic', 'nc', '15')
 # config.set('critic', '; influence of the gradient penalty')
@@ -38,14 +38,17 @@ import configparser
 # config.add_section('training')
 # config.set('training', '; epochs')
 # config.set('training', 'ep', '100')
-# config.set('training', '; batches per epoch (>80)')
-# config.set('training', 'bat_per_epo', '120')
+# config.set('training', '; batches per epoch (>70)')
+# config.set('training', 'bat_per_epo', '80')
 # config.set('training', '; minibatch size')
-# config.set('training', 'batch_size', '8')
+# config.set('training', 'batch_size', '4')
 # config.set('training', '; influence patch invariance')
 # config.set('training', 'lam', '1')
 # config.set('training', '; whether to use GPU acceleration (1) or not (0)')
 # config.set('training', 'is_gpu', '1')
+# config.set('training',
+#             '; whether to use the full-size images (stage=1) or to reduce the spatial dimension by factor 2 (stage=0).')
+# config.set('training', 'stage', '1')
 
 
 # with open('config_file.ini', 'w') as configfile:
@@ -94,7 +97,7 @@ options,args = parser.parse_args()
 
 epochs = float(config['training']['ep'])
 batch_size = int(config['training']['batch_size'])
-bat_per_epo= np.max([float(config['training']['bat_per_epo']),25])
+bat_per_epo= np.max([float(config['training']['bat_per_epo']),70])
 lam = float(config['training']['lam'])
 
 arch_g = config['generator']['arch_g']
@@ -108,10 +111,10 @@ lrc = float(config['critic']['lrc'])
 normc = config['critic']['normc']
 nc = np.int(float(config['critic']['nc']))
 p = float(config['critic']['p'])
+stage = int(config['training']['stage'])
 
 
 dr = False
-stage=0
 paired = True
 
 #%%
@@ -138,8 +141,7 @@ TABLE=TABLE.append(table,ignore_index=True)
 TABLE.to_csv('results.csv',index=False)
 
 try:
-    os.mkdir('rgb_generator')
-    os.mkdir('depth_generator')
+    os.mkdir('generator_weights')
     os.mkdir('metrics')
     os.mkdir('plots')
     os.mkdir('generator_loss')
@@ -304,7 +306,6 @@ if arch_c == 'dcgan':
 else:
     disD = define_patchgan_critic(in_image, fc, norm = normc)
 lenD=len(disD.layers)
-print(disD.summary(), flush=True)
 dD_list.append(add_disblock(disD,2* fc,0,lenD,13,out_dim[-1]))
 dD_list.append(disD)
 
@@ -372,7 +373,6 @@ def add_genblock(gen,f,stage,back,forw,inp_dim,out_dim, norm=normg):
     
     out_img = Concatenate()([out_img, out_uncer])
     model0 = Model(in_image0, out_img)
-    # model0.summary()
     return(model0)
 
 
@@ -381,9 +381,7 @@ if arch_g == 'unet':
 else:
     print('invalid architecture')
     sys.exit(1)
-#genCtoD.summary()
 lenCtoD = len(genCtoD.layers)
-print(genCtoD.summary())
 gCtoD_list = list();
 
 
@@ -443,8 +441,8 @@ for STAGE in [stage]:
     poolD = list(); poolDlpf = list()
     runs += 1
     
-    print(dD1.summary())
-    print(gCtoD.summary())
+    print(dD1.summary(), flush=True)
+    print(gCtoD.summary(), flush=True)
     
 #%%
     while(i < steps):
@@ -534,8 +532,8 @@ for STAGE in [stage]:
             tmp = dD1.get_weights()
             tmp = [tmp[k] for k in range(len(tmp)) if type(tmp[k])==np.ndarray]
             criticW=np.hstack([item.reshape(-1) for sublist in tmp for item in sublist])
-            plot_curves_gp(lossD,genlossD,lam,dDval,criticW,name+'procycle')
-            dif1,dif2 = evall_2(i, gCtoD, evaluation,name+'procycle',task,stage_dims[STAGE],paired=paired)
+            plot_curves_gp(lossD,genlossD,lam,dDval,criticW,name+'uapi')
+            dif1,dif2 = evall_2(i, gCtoD, evaluation,name+'uapi',task,stage_dims[STAGE],paired=paired)
             
             if paired==False:
                 dif1,dif2 = make_fid(task,evaluation,stage_dims,STAGE,count,patches,out_dim,gCtoD,inc_model)
@@ -543,17 +541,17 @@ for STAGE in [stage]:
                 plt.figure()
                 plt.plot(DIF1); plt.plot(DIF2)
                 plt.title(str('%.3f,  %.3f' %(np.min(DIF1),np.min(DIF2))))
-                plt.savefig( 'metric/%s.pdf' %(name+'procycle'),dpi=300)
+                plt.savefig( 'metric/%s.pdf' %(name+''),dpi=300)
             
             else:
                 DIF1.append(dif1); DIF2.append(dif2)
                 plt.figure()
                 plt.plot(DIF1); plt.plot(DIF2)
                 plt.title(str('%.3f,  %.3f' %(np.max(DIF1),np.max(DIF2))))
-                plt.savefig( 'metric/%s.pdf' %(name+'procycle'),dpi=300)
+                plt.savefig( 'metric/%s.pdf' %(name+''),dpi=300)
         
             wg1 = gCtoD.get_weights()
-            np.save(str('CtoDweights/%s_%04d' % (name,i+1)),wg1, allow_pickle=True)
+            np.save(str('generator_weights/%s_%04d' % (name,i+1)),wg1, allow_pickle=True)
             
             inp= np.random.permutation(inp)
             tar= np.random.permutation(tar)

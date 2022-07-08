@@ -322,20 +322,20 @@ def plot_curves_gp(dB,gB,alpha,dDval,criticW,name):
     dDval = np.array(dDval)
     
     plt.figure()
-    l2 = np.convolve(dB[80:],np.ones(20)/20,mode='valid')
+    l2 = np.convolve(dB[50:],np.ones(20)/20,mode='valid')
     b,=plt.plot(l2); 
     l3 = np.array(dDval[:,0])
     l4 = np.array(dDval[:,1])
-    c,=plt.plot(np.convolve(l3[80:],np.ones(20)/20,mode='valid'),linewidth=.3);
-    d,=plt.plot(np.convolve(l4[80:],np.ones(20)/20,mode='valid'),linewidth=.3); 
+    c,=plt.plot(np.convolve(l3[50:],np.ones(20)/20,mode='valid'),linewidth=.3);
+    d,=plt.plot(np.convolve(l4[50:],np.ones(20)/20,mode='valid'),linewidth=.3); 
     plt.legend((b,c,d),('W1_D','W1_Dval','W1_DvalROT'))
     plt.title(str('W1_D: %.2f' %(np.mean(l2[max(len(l2)-100,0):]))))
-    plt.savefig('losses/%s.pdf' %name,dpi=200)
+    plt.savefig('critic_loss/%s.pdf' %name,dpi=200)
     
     plt.figure(figsize=(8,4)) 
-    l2 = np.mean(gB[80:,1:3],axis=-1)
+    l2 = np.mean(gB[50:,1:3],axis=-1)
     b,=plt.plot(np.convolve(l2,np.ones(20)/20,mode='valid')); 
-    l3 = alpha*np.sum(gB[80:,3:], axis=-1)
+    l3 = alpha*np.sum(gB[50:,3:], axis=-1)
     c,=plt.plot(np.convolve(l3,np.ones(20)/20,mode='valid')); 
     plt.legend((b,c),('gen','rec'))
-    plt.savefig('CtoBlosses/%s.pdf' %name,dpi=200)
+    plt.savefig('generator_loss/%s.pdf' %name,dpi=200)

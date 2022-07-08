@@ -1,1 +1,0 @@
-depth-to-RGB generator weights stored after each epoch
