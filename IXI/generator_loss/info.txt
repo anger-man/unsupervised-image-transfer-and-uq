@@ -1,0 +1,1 @@
+scale of adversarial and patch invariance term reported for each generator iteration

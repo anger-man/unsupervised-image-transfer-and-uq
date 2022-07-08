@@ -1,0 +1,1 @@
+critic loss for full-size and zoomed images on test and evaluation data, reported after before each generator update
