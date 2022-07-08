@@ -2,6 +2,7 @@
 Unsupervised joint image transfer and uncertainty quantification using patch invariant networks
 
 Implementation of a light-weight framework for completely unpaired domain mapping and simultaneous uncertainty quantification.
+
 Preprint version: #####
 
 ## Installation
@@ -30,13 +31,13 @@ Input and target images should be given in .jpg-format with spatial dimension **
 |----random_filename1.jpg
 |----random_filename2.jpg
 |--target
-|----random_filename1.npy
-|----random_filename2.npy
+|----random_filename1.jpg
+|----random_filename2.jpg
 |--evaluation
-|----image_index1.jpg
-|----depth_index1.npy
-|----image_index2.jpg
-|----depth_index2.npy
+|----index1_input.jpg
+|----index1_target.jpg
+|----index2_input.jpg
+|----index2_target.jpg
 ```
 The directory *IXI* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset** (https://brain-development.org/ixi-dataset/).
 
