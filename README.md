@@ -1,7 +1,7 @@
-# unsupervised-depth-estimation
-Unsupervised single-shot depth estimation with perceptual reconstruction loss
+# unsupervised-depth-estimation-and-uq
+Unsupervised joint image transfer and uncertainty quantification using patch invariant networks
 
-Implementation of a framework for fully unsupervised single-view depth estimation as proposed in:
+Implementation of a framework for fully unsupervised single depth estimation as proposed in:
 
 Preprint version: #####
 
@@ -10,9 +10,9 @@ Preprint version: #####
 ```
 #from github
 git clone https://github.com/anger-man/unsupervised-depth-estimation
-cd unsupervised-depth-estimation
-conda env create --name tf_2.2.0 --file=environment.yml
-conda activate tf_2.2.0
+cd unsupervised-image-transfer-and-uq
+conda env create --name unsupervised-transfer-uq --file=environment_tf22.yml
+conda activate unsupervised-transfer-uq
 ```
 ## Usage
 
@@ -23,7 +23,7 @@ python train.py --direc path_to_project_folder
 ```
 ## Data preparation
 
-RGB images should be given in .jpg-format with dimension **d**x**d**x**3**, where the possible values for spatial resolution **d** should be powers of 2 (at least 128). Depth images should be given in .npy-format with dimension **d**x**d**x**1**. The evaluation folder should contain some paired samples, where an RGB image is linked by an unique index with its depth counterpart.
+Input and target images should be given in .jpg-format with spatial dimension **d**x**d**, where the possible values for spatial resolution **d** should be powers of 2 (at least 128). The evaluation folder should contain some paired samples, where an image from the input domain is linked by an unique index with its target counterpart.
 
 ```
 ./path_to_project_folder/
@@ -39,7 +39,7 @@ RGB images should be given in .jpg-format with dimension **d**x**d**x**3**, wher
 |----image_index2.jpg
 |----depth_index2.npy
 ```
-The directory *face_depth* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **Texas 3D Face Recognition** database (https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5483908).
+The directory *IXI* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset ** (https://brain-development.org/ixi-dataset/).
 
 
 
