@@ -214,7 +214,7 @@ def define_composite_model(gCtoD, dD1, dD2, inp_dim,lr, coord,alpha,beta,lam):
     
     def l1(l):
         x0 = l[0]; x1 = K.clip(l[1],-1.,1.);
-        uncer = (l[2]+1e-6)
+        uncer = (l[2]+1e-5)
         return tf.expand_dims(K.mean(K.abs(x0-x1)*np.sqrt(2)/uncer+K.log(1.+np.sqrt(2)*uncer),
                                      axis=(1,2,3)),-1)
     #aktuell uncer map from lpf(patch) image
