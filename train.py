@@ -65,10 +65,10 @@ if is_gpu == '0':
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1' 
     
 import sys
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import warnings
 warnings.filterwarnings('ignore')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Layer, Input, Lambda, LayerNormalization
 from tensorflow.keras.layers import LeakyReLU, Concatenate
@@ -449,7 +449,7 @@ for STAGE in [stage]:
         i+=1
         
         NC = nc if i>bat_per_epo else 2*nc
-        print(NC)
+        print('number of critic updates: %02d' %NC)
         for iters in range(NC):
             x_realC, y_real = generate_real_samples(load_data(task,batch_size,count,
                                                             inp,tar,domain='input'), patches)
@@ -484,9 +484,9 @@ for STAGE in [stage]:
                                                                           
                                                                     
         
-        print(str('W1_Dori %08.3f, PENori %+08.3f, gradLori %+08.3f' 
+        print(str('full size images:  W1-distance %07.3f, drift penalty %+07.3f, gradient penalty %+07.3f' 
                   %(-(oriLoss[1]+oriLoss[2]),oriLoss[3],oriLoss[4])),flush=True)
-        print(str('W1_Dlpf %08.3f, PENlpf %+08.3f, gradLlpf %+08.3f' 
+        print(str('resampled patches: W1-distance %07.3f, drift penalty %+07.3f, gradient penalty %+07.3f' 
                   %(-(lpfLoss[1]+lpfLoss[2]),lpfLoss[3],lpfLoss[4])),flush=True)
         
         
@@ -500,13 +500,14 @@ for STAGE in [stage]:
             coord_real.append(np.random.choice(range(stage_dims[stage][0]-pwidth)))
             coord_real.append(np.random.choice(range(stage_dims[stage][0]-pwidth)))
         K.set_value(coord,coord_real)
-        K.set_value(varlam, np.min([lam, lam*i/bat_per_epo])); print(K.get_value(varlam))
+        K.set_value(varlam, np.min([lam, lam*i/bat_per_epo])); 
+        print('lambda: %.3f'%K.get_value(varlam))
         
         if i%10==0:
             w1 = -oriLoss[1]; w2 = oriLoss[2]
-            print(str('criticD r %08.3f f %08.3f' %(w1,w2)),flush=True)
+            print(str('critic output: real images  %07.3f, fake images  %07.3f' %(w1,w2)),flush=True)
             w1 = -lpfLoss[1]; w2 = lpfLoss[2]
-            print(str('criticD r %08.3f f %08.3f' %(w1,w2)),flush=True)
+            print(str('critic output: real patches %07.3f, fake patches %07.3f' %(w1,w2)),flush=True)
             
         if i%10==0:
             vali = validate(task,dD1,dD1,gCtoD,evaluation,stage_dims[STAGE],PatchExtractor,coord)
@@ -522,9 +523,10 @@ for STAGE in [stage]:
      
         genlossD.append(function_CtoD.train_on_batch([x_realC],[y_real,y_real,placeholder_img,placeholder_img]))
                                                
-        print('count: %06d; genDori: %08.3f; genDlpf: %08.3f; circ1: %08.3f; circ2: %08.3f; progress: %04.1f pp.\n ' 
-              %(count,*genlossD[-1][1:],trans*100))
+        print('generator loss: %07.3f; adversarial: %07.3f; UAPI_1: %07.3f; UAPI_2: %07.3f' 
+              %(genlossD[-1][1],*genlossD[-1][2:]))
         lossD.append(.5*(w_ori+w_lpf))
+        print('processed images: %06d, progress: %04.1f pp.\n' %(count,trans*100))
         
         
     
@@ -540,15 +542,15 @@ for STAGE in [stage]:
                 DIF1.append(dif1); DIF2.append(dif2)
                 plt.figure()
                 plt.plot(DIF1); plt.plot(DIF2)
-                plt.title(str('%.3f,  %.3f' %(np.min(DIF1),np.min(DIF2))))
-                plt.savefig( 'metric/%s.pdf' %(name+''),dpi=300)
+                plt.title(str('FID %.3f' %(np.min(DIF2))))
+                plt.savefig( 'metrics/%s.pdf' %(name+'uapi'),dpi=300)
             
             else:
                 DIF1.append(dif1); DIF2.append(dif2)
                 plt.figure()
                 plt.plot(DIF1); plt.plot(DIF2)
-                plt.title(str('%.3f,  %.3f' %(np.max(DIF1),np.max(DIF2))))
-                plt.savefig( 'metric/%s.pdf' %(name+''),dpi=300)
+                plt.title(str('SSIM %.3f, PSNR  %.3f' %(np.max(DIF1),np.max(DIF2))))
+                plt.savefig( 'metrics/%s.pdf' %(name+'uapi'),dpi=300)
         
             wg1 = gCtoD.get_weights()
             np.save(str('generator_weights/%s_%04d' % (name,i+1)),wg1, allow_pickle=True)
@@ -560,13 +562,13 @@ for STAGE in [stage]:
 #%%
 TABLE=pd.read_csv('results.csv',encoding = 'unicode_escape')
 if paired:
-    TABLE.FID1[int(name)]=np.max(DIF1)
-    TABLE.FID2[int(name)]=np.max(DIF2)
+    TABLE.SSIM[int(name)]=np.max(DIF1)
+    TABLE.PSNR[int(name)]=np.max(DIF2)
 else:
-    TABLE.FID1[int(name)]=np.min(DIF1)
-    TABLE.FID2[int(name)]=np.min(DIF2)
+    TABLE.SSIM[int(name)]=np.min(DIF1)
+    TABLE.PSNR[int(name)]=np.min(DIF2)
     
-TABLE.to_csv('TABLEfinal.csv',index=False)
+TABLE.to_csv('results.csv',index=False)
 
 
 

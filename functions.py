@@ -9,6 +9,8 @@ Created on Fri Jul  8 12:58:59 2022
 #%%
 import numpy as np
 from matplotlib.pyplot import imread
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.layers import Layer, AveragePooling2D
@@ -328,7 +330,7 @@ def plot_curves_gp(dB,gB,alpha,dDval,criticW,name):
     l4 = np.array(dDval[:,1])
     c,=plt.plot(np.convolve(l3[50:],np.ones(20)/20,mode='valid'),linewidth=.3);
     d,=plt.plot(np.convolve(l4[50:],np.ones(20)/20,mode='valid'),linewidth=.3); 
-    plt.legend((b,c,d),('W1_D','W1_Dval','W1_DvalROT'))
+    plt.legend((b,c,d),('W1-distance train','W1-distance test full-size','W1-distance test patches'))
     plt.title(str('W1_D: %.2f' %(np.mean(l2[max(len(l2)-100,0):]))))
     plt.savefig('critic_loss/%s.pdf' %name,dpi=200)
     
@@ -337,5 +339,5 @@ def plot_curves_gp(dB,gB,alpha,dDval,criticW,name):
     b,=plt.plot(np.convolve(l2,np.ones(20)/20,mode='valid')); 
     l3 = alpha*np.sum(gB[50:,3:], axis=-1)
     c,=plt.plot(np.convolve(l3,np.ones(20)/20,mode='valid')); 
-    plt.legend((b,c),('gen','rec'))
+    plt.legend((b,c),('adversarial','patch invariance'))
     plt.savefig('generator_loss/%s.pdf' %name,dpi=200)
