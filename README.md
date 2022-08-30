@@ -23,7 +23,7 @@ python train_uapi.py --direc path_to_project_folder
 ```
 For example:
 ```
-python train_uapi.py --direc 'IXI/'
+python train_uapi.py --direc 'ixi/'
 ```
 ## Data preparation
 
