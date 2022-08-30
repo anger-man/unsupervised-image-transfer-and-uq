@@ -1,0 +1,2 @@
+critic,generator,mode,f_critic,f_generator,lr_critic,lr_generator,norm_critic,norm_generator,reconstuction,penalty,num_cri,batches_per_epoch,epochs,SSIM,PSNR,comments
+dcgan,unet,uapi,24.0,16.0,2e-05,5e-05,none,instance,0.5,10.0,15,150.0,100.0,1e-07,1e-07,

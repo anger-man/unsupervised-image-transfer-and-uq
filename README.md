@@ -19,11 +19,11 @@ conda activate unsupervised-transfer-uq
 Model architectures and training parameters can be set in **config_file.ini**.
 Then:
 ```
-python train.py --direc path_to_project_folder
+python train_uapi.py --direc path_to_project_folder
 ```
 For example:
 ```
-python train.py --direc 'IXI/'
+python train_uapi.py --direc 'IXI/'
 ```
 ## Data preparation
 

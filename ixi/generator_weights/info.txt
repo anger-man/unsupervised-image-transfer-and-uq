@@ -1,0 +1,1 @@
+generator weights after end of each epoch stored as .npy modules

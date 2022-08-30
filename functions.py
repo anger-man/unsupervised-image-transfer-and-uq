@@ -114,6 +114,25 @@ def make_fid(task,evaluation,stage_dims,STAGE,count,patches,out_dim,gCtoD,inc_mo
 
 # data functions
 
+def apply_filter(x,d0=2,hpf=True):
+    if x.shape[-1]<=3:
+        x=x[...,0]
+    mid = x.shape[1]//2
+    if hpf:
+        f = lambda x,y: 1.-np.exp(-((x-mid)**2+(y-mid)**2)/(2*d0**2))
+    else:
+        f = lambda x,y: np.exp(-((x-mid)**2+(y-mid)**2)/(2*d0**2))
+        
+    filt_mat = np.ones((x.shape[1],x.shape[1]))
+    for i in range(filt_mat.shape[0]):
+        for j in range(filt_mat.shape[1]):
+            filt_mat[i,j]= f(i,j)
+        
+    ft = np.fft.fftshift(np.fft.fft2(x))
+    ft = ft * filt_mat
+    res =np.real(np.fft.ifft2(np.fft.ifftshift(ft)))
+    return(res)
+
 def scale_data(x,dim):
     shape = x.shape
     res = np.zeros((shape[0],dim[0],dim[1],shape[-1]))
@@ -133,7 +152,10 @@ def load_data(task,number_of_faces, index, inp, tar,domain,grayscale=False):
         i1 = (index+k)%len(inp)
         i2 = (index+k)%len(tar)
         if domain == 'input':
-            x = imread(inp[i1]); 
+            if task=='dt4/':
+                x=np.load(inp[i1])
+            else:
+                x = imread(inp[i1]); 
             x = (x-127.5)/127.5
         else:
             x = imread(tar[i2])
@@ -147,7 +169,7 @@ def load_data(task,number_of_faces, index, inp, tar,domain,grayscale=False):
     if grayscale:
         X = .299*X[...,0:1] + .587*X[...,1:2] + .114*X[...,2:3]
     
-    if task in ['tex/','dog/','dt4/']:
+    if task in ['tex/','dog/']:
         X = X[:,::2,::2]
     return (X)
 
@@ -252,32 +274,22 @@ def evall_2(step, gCtoD,evaluation,name,task,dim,paired=False):
    
     preds_B = gCtoD.predict(X1, batch_size=2)[...,:X2.shape[-1]]
     X1 = (X1+1) * 127.5    
-    if task in ['tex/']:
-        preds_B = (preds_B+1)/2
-        X2 = (X2+1)/2
-    if task in ['ixi/','rir/','kne/','hea/']:
-        preds_B = (preds_B+1)*127.5
-        X2 = (X2+1)*127.5
+    
     if task in ['dt4/']:
-        avg_pool = AveragePooling2D(pool_size=(2,2),padding='valid',strides=(1,1))
         preds_B = preds_B*5
         X2 = X2*5
-        preds_B = avg_pool(preds_B)
-        X2 = avg_pool(X2)
-    if task in ['sur/']:
-        preds_B = preds_B*0.4725
-        X2 = X2*0.4725
-    if task in ['dog/']:
-        preds_B = (preds_B+1) * 127.5  
-        preds_B = preds_B.astype(np.uint8)
-        X2 = (X2+1) * 127.5  
-        X2 = X2.astype(np.uint8)
+        preds_B = apply_filter(preds_B,d0=64,hpf=False)
+        X2 = apply_filter(X2,d0=64,hpf=False)
+    else:
+        preds_B = (preds_B+1)*127.5
+        X2 = (X2+1)*127.5
+   
         
     fig = plt.figure(figsize=(5,6.5))
     for i in range(5):
         ax=fig.add_subplot(6, 5, 1 + i)
         plt.axis('off')
-        ax.imshow(X1[i].astype(np.uint8))
+        ax.imshow(X1[i,...,:3].astype(np.uint8))
     for i in range(5):
         ax=fig.add_subplot(6, 5, 5+1 + i)
         plt.axis('off')
@@ -289,7 +301,7 @@ def evall_2(step, gCtoD,evaluation,name,task,dim,paired=False):
     for i in range(5):
         ax=fig.add_subplot(6, 5, 3*5+1 + i)
         plt.axis('off')
-        ax.imshow(X1[i+5].astype(np.uint8))
+        ax.imshow(X1[i+5,...,:3].astype(np.uint8))
     for i in range(5):
         ax=fig.add_subplot(6, 5, 4*5+1 + i)
         plt.axis('off')
@@ -300,10 +312,12 @@ def evall_2(step, gCtoD,evaluation,name,task,dim,paired=False):
         ax.imshow(X2[i+5]);
     
     if paired:
-        if task in ['tex/','dt4/','sur/']:
-            dif1 = -np.mean(np.square(X2-preds_B))**.5
+        if task in ['dt4/']:
+            blc1 = -np.sort(-np.reshape(X2,(len(X2),256**2)));
+            blc2 = -np.sort(-np.reshape(preds_B,(len(preds_B),256**2)));
+            dif1 = -np.mean(np.abs(blc1-blc2))
             dif2 = -np.mean(np.abs(X2-preds_B))
-            fig.suptitle('RMSE: %.3f\n' %(-dif1))
+            fig.suptitle('BLC: %.3f\n' %(-dif1))
         else:
             dif1 = ssim(X2,preds_B,multichannel=True,data_range=X2.max()-X2.min())*100
             dif2 = psnr(X2,preds_B)
@@ -324,20 +338,20 @@ def plot_curves_gp(dB,gB,alpha,dDval,criticW,name):
     dDval = np.array(dDval)
     
     plt.figure()
-    l2 = np.convolve(dB[50:],np.ones(20)/20,mode='valid')
+    l2 = np.convolve(dB[80:],np.ones(20)/20,mode='valid')
     b,=plt.plot(l2); 
     l3 = np.array(dDval[:,0])
     l4 = np.array(dDval[:,1])
-    c,=plt.plot(np.convolve(l3[50:],np.ones(20)/20,mode='valid'),linewidth=.3);
-    d,=plt.plot(np.convolve(l4[50:],np.ones(20)/20,mode='valid'),linewidth=.3); 
+    c,=plt.plot(np.convolve(l3[80:],np.ones(20)/20,mode='valid'),linewidth=.3);
+    d,=plt.plot(np.convolve(l4[80:],np.ones(20)/20,mode='valid'),linewidth=.3); 
     plt.legend((b,c,d),('W1-distance train','W1-distance test full-size','W1-distance test patches'))
     plt.title(str('W1_D: %.2f' %(np.mean(l2[max(len(l2)-100,0):]))))
     plt.savefig('critic_loss/%s.pdf' %name,dpi=200)
     
     plt.figure(figsize=(8,4)) 
-    l2 = np.mean(gB[50:,1:3],axis=-1)
+    l2 = np.mean(gB[80:,1:3],axis=-1)
     b,=plt.plot(np.convolve(l2,np.ones(20)/20,mode='valid')); 
-    l3 = alpha*np.sum(gB[50:,3:], axis=-1)
+    l3 = alpha*np.sum(gB[80:,4:5], axis=-1)
     c,=plt.plot(np.convolve(l3,np.ones(20)/20,mode='valid')); 
     plt.legend((b,c),('adversarial','patch invariance'))
     plt.savefig('generator_loss/%s.pdf' %name,dpi=200)

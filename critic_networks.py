@@ -224,21 +224,28 @@ def define_patchgan_critic(in_image,f,norm,k = 4,alpha=0.2,out_act='linear'):
     
     d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=2)(in_image)
     d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
     d = Conv2DHE(filters=2*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Activation('linear')(Activation('linear')(Activation('linear')(d)))
     
     d = Conv2DHE(filters=4*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Activation('linear')(Activation('linear')(Activation('linear')(d)))
     
-    d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=2)(d)
-    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
     d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=1)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Activation('linear')(Activation('linear')(Activation('linear')(d)))
+    
+    d = Activation('linear')(Activation('linear')(Activation('linear')(d)))
+    d = Activation('linear')(Activation('linear')(Activation('linear')(d)))
     
     d = Conv2DHE(filters=1, kernel_size=(k,k), padding='valid',strides=1)(d)
     patch_out = Activation(out_act)(d)
+    
     model = Model(in_image, patch_out)
    
     return model
@@ -257,7 +264,7 @@ def calculate_respective_field(S,F):
         r+=(F[l-1]-1)*s
     return r
 
-calculate_respective_field([2,2,2,2,1,1],[4,4,4,4,4,4])
+calculate_respective_field([2,1,2,1,2,1,1],[4,4,4,4,4,4,4])
 
 ###############################################################################
 
@@ -278,21 +285,84 @@ def define_dcgan_critic(in_image,f,norm,k = 4,alpha=0.2,out_act='linear'):
     
     d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=2)(in_image)
     d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
     d = Conv2DHE(filters=2*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Conv2DHE(filters=2*f,kernel_size=(k,k),padding='same',strides=1)(d)
     d = LeakyReLU(.2)(Identity(scale=False)(d))
     
     d = Conv2DHE(filters=4*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=4*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    
     
     d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=1)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
     d = Conv2DHE(filters=16*f,kernel_size=(k,k),padding='same',strides=2)(d)
     d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=16*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
     
     d = Conv2DHE(filters=1, kernel_size=(k,k), padding='valid',strides=1)(d)
-    dcgan_out = Activation('linear')(d)
+    dcgan_out = Activation(out_act)(d)
+    
+    model = Model(in_image, dcgan_out)
+   
+    return model
+
+###############################################################################
+
+# define INN critic
+
+def define_inn_critic(in_image,f,norm,k = 4,alpha=0.2,out_act='linear'):
+    
+    f=int(f);
+    
+    if norm=='none':
+        cNormalization = Identity
+    elif norm=='layer':
+        cNormalization = LayerNormalization
+    elif norm=='instance':
+        cNormalization = InstanceNormalization
+    else:
+        print('No valid norm defined'); pass;
+    
+    d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=2)(in_image)
+    d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Conv2DHE(filters=f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    
+    d = Conv2DHE(filters=2*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(Identity(scale=False)(d))
+    d = Conv2DHE(filters=2*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(Identity(scale=False)(d))
+    
+    d = Conv2DHE(filters=4*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=4*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    
+    out1 = Conv2DHE(filters=1, kernel_size=(k,k), padding='same',strides=1)(d)
+    
+    d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=8*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    
+    d = Conv2DHE(filters=16*f,kernel_size=(k,k),padding='same',strides=2)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    d = Conv2DHE(filters=16*f,kernel_size=(k,k),padding='same',strides=1)(d)
+    d = LeakyReLU(.2)(cNormalization(scale=False)(d))
+    
+    out2 = Conv2DHE(filters=1, kernel_size=(k,k), padding='same',strides=1)(d)
+    out2 = tf.keras.layers.UpSampling2D(size=(4,4),interpolation='nearest')(out2)
+    dcgan_out = tf.keras.layers.Average()([out1,out2])
     
     model = Model(in_image, dcgan_out)
    

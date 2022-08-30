@@ -39,18 +39,19 @@ def unet_enc(f, input_layer, red=True, gnorm=Identity, dropout=False):
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dropout)(g)
     g = LeakyReLU(.0)(gnorm()(g))
     shortcut = g
-    g = MaxPooling2D((2,2))(g)
+    g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dropout,strides=2)(g)
+    g = LeakyReLU(.0)(gnorm()(g))
     return(g,shortcut)
 
 def unet_dec(f, input_layer, skip, short=True, gnorm = Identity, dropout=False):
     g = UpSampling2D((2,2),interpolation='nearest')(input_layer)
-    g = Conv2DHE(filters=f, kernel_size=(3,3),padding='same',dropout=dropout)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = Conv2DHE(filters=f, kernel_size=(4,4),padding='same',dropout=dropout)(g)
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Concatenate()([g,skip])
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dropout)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dropout)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     return(g)
 
 
@@ -75,7 +76,7 @@ def define_unet(inp_dim,out_dim,f, norm = 'none', out_act = 'tanh',dr=False):
     
     in_image = Input(shape=inp_dim)
     g = in_image
-    g = Conv2DHE(filters=f,kernel_size=(3,3), padding = 'same',dropout=dr)(g)
+    g = Conv2DHE(filters=f//2,kernel_size=(3,3), padding = 'same',dropout=dr)(g)
     g = LeakyReLU(.0)(gnorm()(g))
     g, g_0 = unet_enc(f,    g, red= True, gnorm=gnorm,dropout=dr)
     g, g_1 = unet_enc(2*f,  g, red= True, gnorm=gnorm,dropout=dr)
@@ -89,23 +90,23 @@ def define_unet(inp_dim,out_dim,f, norm = 'none', out_act = 'tanh',dr=False):
     g = unet_dec(2*f, g, g_1, gnorm=gnorm,dropout=dr)
     foo = UpSampling2D((2,2),interpolation='nearest')(g)
     
-    g = Conv2DHE(filters=f, kernel_size=(3,3),padding='same',dropout=dr)(foo)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = Conv2DHE(filters=f, kernel_size=(4,4),padding='same',dropout=dr)(foo)
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Concatenate()([g,g_0])
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dr)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dr)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     out_image = Conv2DHE(filters=out_dim[-1], kernel_size=(3,3), padding='same',strides=(1,1),
                        activation = out_act)(g)
     
-    g = Conv2DHE(filters=f, kernel_size=(3,3),padding='same',dropout=dr)(foo)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = Conv2DHE(filters=f, kernel_size=(4,4),padding='same',dropout=dr)(foo)
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Concatenate()([g,g_0])
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dr)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     g = Conv2DHE(filters=f, kernel_size=(3,3), padding='same',dropout=dr)(g)
-    g = LeakyReLU(.0)(gnorm()(g))
+    g = LeakyReLU(.1)(gnorm()(g))
     out_uncer = Conv2DHE(filters=1, kernel_size=(3,3), padding='same',strides=(1,1),
                        activation = 'softplus')(g)
     
