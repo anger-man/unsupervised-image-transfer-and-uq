@@ -3,7 +3,7 @@ Unsupervised joint image transfer and uncertainty quantification using patch inv
 
 Implementation of a light-weight framework for completely unpaired domain mapping and simultaneous uncertainty quantification.
 
-Preprint version: #####
+Preprint version: https://arxiv.org/abs/2207.04325
 
 ## Installation
 
