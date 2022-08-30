@@ -43,7 +43,7 @@ Input and target images should be given in .jpg-format with spatial dimension **
 |----index2_input.jpg
 |----index2_target.jpg
 ```
-The directory *IXI* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset** (https://brain-development.org/ixi-dataset/).
+The directory *ixi/* gives an example of the needed structure of the project folder. It contains pre-processed samples taken from the **IXI Dataset** (https://brain-development.org/ixi-dataset/).
 
 
 
