@@ -43,7 +43,7 @@ config.set('training', 'bat_per_epo', '150')
 config.set('training', '; minibatch size')
 config.set('training', 'batch_size', '4')
 config.set('training', '; influence patch invariance')
-config.set('training', 'lam', '1')
+config.set('training', 'lam', '.5')
 config.set('training', '; whether to use GPU acceleration (1) or not (0)')
 config.set('training', 'is_gpu', '1')
 config.set('training',
@@ -96,7 +96,7 @@ from functions import make_fid, evall_2, plot_curves_gp, validate
 
 parser = optparse.OptionParser()
 parser.add_option('--direc', action="store", dest="task", default="ixi/")
-parser.add_option('--lam', action="store", dest="lam",type='float',default=.5)
+parser.add_option('--lam', action="store", dest="lam",type='float',default=-1)
 parser.add_option('--wait', action="store", dest="wait",type='int',default=0)
 parser.add_option('--mode', action='store', dest='mode', default='none')
 options,args = parser.parse_args()
